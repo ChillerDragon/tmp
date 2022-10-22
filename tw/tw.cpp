@@ -19,6 +19,9 @@ void help()
 	puts("usage: tw hostname data");
 }
 
+//                              size=7 flags=1       <   empty srv token  >  ctrl  <   my token is 1234 >
+const unsigned char MSG_TOKEN[] = {0x04, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0x05, 0x01, 0x02, 0x03, 0x04};
+
 int main(int argc, char *argv[])
 {
 	int sockfd;
@@ -29,7 +32,8 @@ int main(int argc, char *argv[])
 	char aHost[128];
 	strncpy(aHost, "localhost", sizeof(aHost));
 	char aData[512];
-	memset(aData, 1, sizeof(aData));
+	memcpy(aData, MSG_TOKEN, sizeof(aData));
+	int DataSize = sizeof(MSG_TOKEN);
 
 	if(argc > 1)
 	{
@@ -40,7 +44,10 @@ int main(int argc, char *argv[])
 		}
 		strncpy(aHost, argv[1], sizeof(aHost));
 		if(argc > 2)
+		{
 			strncpy(aData, argv[2], sizeof(aData));
+			DataSize = strlen(aData);
+		}
 	}
 
 	memset(&hints, 0, sizeof hints);
@@ -72,7 +79,7 @@ int main(int argc, char *argv[])
 		return 2;
 	}
 
-	numbytes = sendto(sockfd, aData, strlen(aData), 0, p->ai_addr, p->ai_addrlen);
+	numbytes = sendto(sockfd, aData, DataSize, 0, p->ai_addr, p->ai_addrlen);
 	if(numbytes == -1)
 	{
 		perror("tw: sendto");
