@@ -22,6 +22,21 @@ void help()
 //                              size=7 flags=1       <   empty srv token  >  ctrl  <   my token is 1234 >
 const unsigned char MSG_TOKEN[] = {0x04, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0x05, 0x01, 0x02, 0x03, 0x04};
 
+void dump_sockaddr(const sockaddr_in *addr)
+{
+	printf("sockaddr_in {\n");
+	printf("  sin_family=%d\n", addr->sin_family);
+	printf("  sin_port=%d\n", addr->sin_port);
+	printf("  sin_addr {\n");
+	printf("    s_addr=%d.%d.%d.%d\n",
+			addr->sin_addr.s_addr & 0xFF,
+			(addr->sin_addr.s_addr >> 8) & 0xFF,
+			(addr->sin_addr.s_addr >> 16) & 0xFF,
+			(addr->sin_addr.s_addr >> 24) & 0xFF);
+	printf("  }\n");
+	printf("}\n");
+}
+
 int main(int argc, char *argv[])
 {
 	int sockfd;
@@ -51,7 +66,7 @@ int main(int argc, char *argv[])
 	}
 
 	memset(&hints, 0, sizeof hints);
-	hints.ai_family = AF_INET6; // set to AF_INET to use IPv4
+	hints.ai_family = AF_INET; // set to AF_INET to use IPv4
 	hints.ai_socktype = SOCK_DGRAM;
 
 	if((rv = getaddrinfo(aHost, SERVERPORT, &hints, &servinfo)) != 0)
@@ -79,6 +94,7 @@ int main(int argc, char *argv[])
 		return 2;
 	}
 
+	dump_sockaddr((sockaddr_in *)p->ai_addr);
 	numbytes = sendto(sockfd, aData, DataSize, 0, p->ai_addr, p->ai_addrlen);
 	if(numbytes == -1)
 	{
